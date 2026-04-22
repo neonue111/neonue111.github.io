@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Studio KAI — 手工美学作品集</title>
+    <!-- Google Fonts: 现代无衬线 + 手写风格字体 -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Caveat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome 6 (免费图标库) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* 预加载器样式 —— 全屏手工拼贴画布 */
+        #preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #FDF8F2;  /* 暖白手工纸底色 */
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.8s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* 预加载器隐藏状态 */
+        #preloader.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* 手绘拼贴容器 */
+        .preloader-collage {
+            position: relative;
+            width: 280px;
+            height: 280px;
+            margin-bottom: 2rem;
+            animation: float 2.5s ease-in-out infinite;
+        }
+
+        /* 浮动动画 */
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-12px) rotate(1deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+
+        /* 拼贴碎片 — 模拟手工剪纸/布料/贴纸 */
+        .collage-piece {
+            position: absolute;
+            background-size: cover;
+            background-position: center;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.04);
+            transition: all 0.2s ease;
+        }
+
+        /* 不规则形状的碎片 */
+        .piece1 {
+            width: 110px;
+            height: 110px;
+            top: 10px;
+            left: 20px;
+            background: #FFEDD6;
+            border-radius: 35% 65% 45% 55% / 40% 35% 65% 60%;
+            border: 1.5px solid #E8D5C0;
+            transform: rotate(-6deg);
+            background-image: url('https://picsum.photos/id/20/150/150');
+            background-size: cover;
+        }
+        .piece2 {
+            width: 95px;
+            height: 95px;
+            bottom: 25px;
+            right: 15px;
+            background: #FFE5C4;
+            border-radius: 55% 45% 65% 35% / 50% 55% 45% 50%;
+            border: 1px solid #EBD8C2;
+            transform: rotate(8deg);
+            background-image: url('https://picsum.photos/id/30/130/130');
+            background-size: cover;
+        }
+        .piece3 {
+            width: 70px;
+            height: 70px;
+            top: 60px;
+            right: 30px;
+            background: #EEDDCB;
+            border-radius: 40% 60% 30% 70% / 55% 40% 60% 45%;
+            border: 1px solid #DCCAB6;
+            transform: rotate(-12deg);
+            background-image: url('https://picsum.photos/id/42/100/100');
+            background-size: cover;
+        }
+        .piece4 {
+            width: 85px;
+            height: 85px;
+            bottom: 40px;
+            left: 15px;
+            background: #FFF2E5;
+            border-radius: 65% 35% 55% 45% / 35% 60% 40% 65%;
+            border: 1.5px dashed #D6C2AB;
+            transform: rotate(4deg);
+            background-image: url('https://picsum.photos/id/64/120/120');
+            background-size: cover;
+        }
+
+        /* 手绘线条装饰 */
+        .doodle-line {
+            position: absolute;
+            width: 80px;
+            height: 2px;
+            background: repeating-linear-gradient(90deg, #CBB696, #CBB696 6px, transparent 6px, transparent 12px);
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        /* 加载文本 —— 手写风格 */
+        .loading-text {
+            font-family: 'Caveat', cursive;
+            font-size: 1.8rem;
+            color: #5F5548;
+            margin: 1rem 0 1.2rem;
+            letter-spacing: 1px;
+            position: relative;
+            display: inline-block;
+        }
+
+        /* 手绘下划线 */
+        .loading-text:after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: repeating-linear-gradient(90deg, #D1C3B2, #D1C3B2 4px, transparent 4px, transparent 8px);
+        }
+
+        /* 进度条容器 —— 手工质感 */
+        .progress-container {
+            width: 260px;
+            height: 6px;
+            background: #EFE5DB;
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 0.8rem 0;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
+            border: 0.5px solid #E2D5C6;
+        }
+
+        /* 进度条填充 —— 手工染色效果 */
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #BFA888, #D9C8B6, #CBB696);
+            border-radius: 12px;
+            transition: width 0.15s linear;
+            position: relative;
+        }
+
+        /* 百分比显示 —— 手写风格 */
+        .progress-percent {
+            font-family: 'Caveat', cursive;
+            font-size: 1rem;
+            color: #A58F72;
+            margin-top: 0.3rem;
+            font-weight: 500;
+        }
+
+        /* 随机手写短语容器 */
+        .thought-bubble {
+            margin-top: 1.5rem;
+            text-align: center;
+            min-height: 70px;
+        }
+
+        .thought-text {
+            font-family: 'Caveat', cursive;
+            font-size: 0.9rem;
+            color: #9E8972;
+            background: #FFFBF7;
+            padding: 0.4rem 1rem;
+            border-radius: 40px;
+            display: inline-block;
+            border: 0.8px solid #E4D8CB;
+            max-width: 280px;
+            line-height: 1.4;
+        }
+
+        /* 闪烁的铅笔icon */
+        .pencil-icon {
+            font-size: 1.2rem;
+            color: #C5AD8C;
+            margin: 0 0.3rem;
+            animation: bouncePencil 1s ease-in-out infinite;
+        }
+
+        @keyframes bouncePencil {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-3px); }
+        }
+
+        /* 小贴纸装饰 */
+        .sticker {
+            position: absolute;
+            font-family: 'Caveat', cursive;
+            font-size: 0.7rem;
+            background: rgba(255,255,240,0.9);
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            border: 0.5px solid #E5D5C0;
+            transform: rotate(-8deg);
+        }
+
+        .sticker1 {
+            top: -15px;
+            right: 10px;
+        }
+
+        .sticker2 {
+            bottom: -15px;
+            left: 0;
+            transform: rotate(5deg);
+        }
+
+        /* 主内容区域 — 初始隐藏 */
+        .main-content {
+            opacity: 0;
+            transition: opacity 0.6s ease;
+        }
+
+        .main-content.visible {
+            opacity: 1;
+        }
+
+        /* 以下是原有作品集样式 */
+        body {
+            background-color: #FDF8F2;
+            color: #2C2B28;
+            font-family: 'Inter', sans-serif;
+            line-height: 1.5;
+            scroll-behavior: smooth;
+            overflow-x: hidden;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #F3EDE5;
+            border-radius: 12px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #D1C3B2;
+            border-radius: 12px;
+        }
+
+        html {
+            scroll-padding-top: 88px;
+        }
+
+        .navbar {
+            position: sticky;
+            top: 0;
+            background: rgba(253, 248, 242, 0.92);
+            backdrop-filter: blur(10px);
+            border-bottom: 1.5px solid #EADDCB;
+            z-index: 1000;
+            transition: all 0.2s;
+        }
+        .nav-container {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .logo {
+            font-family: 'Caveat', cursive;
+            font-size: 1.9rem;
+            font-weight: 600;
+            color: #4B3B2C;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #3E2C21, #9B7B5C);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            border-bottom: 2px dashed #E5D5C0;
+            line-height: 1.1;
+        }
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+        .nav-links a {
+            text-decoration: none;
+            font-weight: 500;
+            color: #5F5548;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+            position: relative;
+            padding-bottom: 4px;
+        }
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #C5AD8C;
+            transition: width 0.2s ease;
+        }
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+        .nav-links a:hover {
+            color: #2C241C;
+        }
+
+        @media (max-width: 700px) {
+            .nav-container {
+                flex-direction: column;
+                gap: 0.8rem;
+                padding: 1rem;
+            }
+            .nav-links {
+                gap: 1.5rem;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+        section {
+            padding: 5rem 0;
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 500;
+            letter-spacing: -0.01em;
+            margin-bottom: 2.5rem;
+            position: relative;
+            display: inline-block;
+            color: #3F3326;
+        }
+        .section-title:before {
+            content: "✎";
+            font-family: 'Caveat', cursive;
+            font-size: 1.8rem;
+            color: #CDB79E;
+            position: absolute;
+            left: -2.2rem;
+            top: -0.2rem;
+            opacity: 0.7;
+        }
+        @media (max-width: 750px) {
+            .section-title {
+                display: block;
+                text-align: center;
+                margin-left: auto;
+                margin-right: auto;
+            }
+            .section-title:before {
+                left: 0;
+                top: -1.2rem;
+                display: block;
+                text-align: center;
+                width: 100%;
+            }
+        }
+
+        .hero {
+            padding: 2rem 0 3rem 0;
+            position: relative;
+        }
+        .hero-grid {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 3rem;
+            justify-content: space-between;
+        }
+        .hero-content {
+            flex: 1.2;
+            min-width: 280px;
+        }
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #FFF8F0;
+            border: 1px solid #E5D5C0;
+            border-radius: 60px;
+            padding: 0.25rem 1rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #9B7B5C;
+            margin-bottom: 1rem;
+        }
+        .hero-content h1 {
+            font-size: 3.8rem;
+            font-weight: 700;
+            line-height: 1.15;
+            margin-bottom: 0.6rem;
+            color: #2F2A24;
+            letter-spacing: -0.02em;
+        }
+        .hero-content .highlight {
+            background: linear-gradient(120deg, #FFF1E0, #FDE8D4);
+            padding: 0 0.4rem;
+            display: inline-block;
+        }
+        .hero-desc {
+            font-size: 1rem;
+            color: #5F5548;
+            margin: 1.2rem 0 2rem;
+            max-width: 550px;
+            border-left: 3px solid #E2D0BA;
+            padding-left: 1rem;
+        }
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.7rem 1.8rem;
+            border-radius: 60px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s;
+            font-size: 0.85rem;
+            background: transparent;
+            border: 1.5px solid #D6C8B7;
+            color: #4F4438;
+        }
+        .btn-primary {
+            background: #2E2A24;
+            border-color: #2E2A24;
+            color: #FFFCF8;
+        }
+        .btn-primary:hover {
+            background: #4F4438;
+            border-color: #4F4438;
+            transform: translateY(-3px);
+        }
+        .btn-outline {
+            border-color: #D1C0AA;
+            background: #FFFCF9;
+        }
+        .btn-outline:hover {
+            background: #FCF4EA;
+            border-color: #BFA888;
+            transform: translateY(-3px);
+        }
+        .hero-visual {
+            flex: 1;
+            min-width: 260px;
+            position: relative;
+        }
+        .collage-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            transform: rotate(1deg);
+        }
+        .collage-item {
+            background: #FBF3EA;
+            border-radius: 32px;
+            overflow: hidden;
+            box-shadow: 0 12px 24px -12px rgba(0,0,0,0.08);
+            transition: all 0.25s;
+            border: 1px solid #EEE1D2;
+        }
+        .collage-item:hover {
+            transform: translateY(-6px);
+        }
+        .collage-item img {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            display: block;
+        }
+        .collage-item.large {
+            grid-column: span 2;
+        }
+        .collage-item.large img {
+            height: 200px;
+        }
+        .sketch-sticker {
+            position: absolute;
+            bottom: -20px;
+            left: -20px;
+            font-family: 'Caveat', cursive;
+            background: #FDF6ED;
+            padding: 0.3rem 0.9rem;
+            border-radius: 60px;
+            font-size: 0.8rem;
+            color: #A5896A;
+            border: 1px dashed #DCC9B2;
+            transform: rotate(-5deg);
+            backdrop-filter: blur(4px);
+        }
+
+        .resume-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        .resume-card {
+            background: #FFFFFFE6;
+            border-radius: 32px;
+            padding: 2rem;
+            border: 1px solid #EEE3D8;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.02);
+            transition: all 0.3s;
+        }
+        .resume-card:hover {
+            border-color: #D9C8B6;
+            box-shadow: 0 20px 28px -12px rgba(0,0,0,0.08);
+        }
+        .resume-card h3 {
+            font-family: 'Caveat', cursive;
+            font-size: 1.9rem;
+            font-weight: 600;
+            margin-bottom: 1.4rem;
+            color: #4F3F2F;
+            border-left: 4px solid #DFCEB9;
+            padding-left: 0.9rem;
+        }
+        .exp-item {
+            margin-bottom: 1.6rem;
+        }
+        .exp-item h4 {
+            font-weight: 700;
+            font-size: 1rem;
+        }
+        .exp-date {
+            font-size: 0.7rem;
+            color: #B39B7E;
+            letter-spacing: 0.3px;
+            margin: 0.2rem 0 0.4rem;
+        }
+        .skill-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            margin-top: 1rem;
+        }
+        .skill-tag {
+            background: #FBF4EC;
+            padding: 0.3rem 1rem;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #6E5C4A;
+            border: 0.5px solid #E9DDD0;
+        }
+
+        .portfolio-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+        .portfolio-item {
+            background: #FFFFFF;
+            border-radius: 28px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 1px solid #F0E5DB;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+        }
+        .portfolio-item:hover {
+            transform: translateY(-8px);
+            border-color: #DBCAB6;
+            box-shadow: 0 20px 28px -12px rgba(0,0,0,0.1);
+        }
+        .portfolio-img {
+            width: 100%;
+            height: 240px;
+            object-fit: cover;
+            background: #F6EFE6;
+            transition: transform 0.5s;
+        }
+        .portfolio-item:hover .portfolio-img {
+            transform: scale(1.02);
+        }
+        .portfolio-info {
+            padding: 1.5rem;
+        }
+        .portfolio-info h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        .portfolio-desc {
+            color: #706656;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+        }
+        .tag-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .tag {
+            background: #FCF7F0;
+            border-radius: 60px;
+            padding: 0.2rem 0.9rem;
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: #A1876A;
+        }
+
+        .video-section {
+            background: #FEFBF7;
+            border-radius: 48px;
+            margin: 1rem 0;
+        }
+        .video-frame {
+            max-width: 1000px;
+            margin: 0 auto;
+            border-radius: 36px;
+            background: #FFF7EF;
+            padding: 0.8rem;
+            border: 1px solid #E8DDD0;
+            box-shadow: 0 12px 18px -10px rgba(0,0,0,0.04);
+        }
+        video {
+            width: 100%;
+            border-radius: 28px;
+            display: block;
+            background: #EADECF;
+        }
+        .video-caption {
+            text-align: center;
+            margin-top: 1rem;
+            font-family: 'Caveat', cursive;
+            color: #9F886C;
+        }
+
+        .contact-block {
+            background: #FEFBF7;
+            border-top: 1px solid #EBE0D4;
+            border-bottom: 1px solid #EBE0D4;
+            text-align: center;
+            padding: 2.5rem 1rem;
+        }
+        .contact-icons {
+            display: flex;
+            justify-content: center;
+            gap: 1.8rem;
+            flex-wrap: wrap;
+            margin: 2rem 0 1rem;
+        }
+        .contact-icons a {
+            color: #6D5C4B;
+            text-decoration: none;
+            background: #FFFFFF;
+            padding: 0.6rem 1.3rem;
+            border-radius: 60px;
+            border: 1px solid #E2D4C5;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .contact-icons a:hover {
+            background: #FEF3E8;
+            border-color: #CBB696;
+            transform: translateY(-2px);
+            color: #3E3024;
+        }
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            font-size: 0.75rem;
+            color: #B7A58F;
+            border-top: 1px solid #EEE3D8;
+            margin-top: 0;
+        }
+        .hand-drawn-divider {
+            width: 80px;
+            height: 2px;
+            background: repeating-linear-gradient(90deg, #D9C8B6, #D9C8B6 6px, transparent 6px, transparent 12px);
+            margin: 1rem auto;
+        }
+
+        @media (max-width: 780px) {
+            .resume-grid {
+                grid-template-columns: 1fr;
+            }
+            .hero-content h1 {
+                font-size: 2.4rem;
+            }
+            .collage-grid {
+                gap: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ========== 预加载器 (KARO Crafts 手工拼贴风格) ========== -->
+<div id="preloader">
+    <div class="preloader-collage">
+        <div class="collage-piece piece1"></div>
+        <div class="collage-piece piece2"></div>
+        <div class="collage-piece piece3"></div>
+        <div class="collage-piece piece4"></div>
+        <div class="doodle-line"></div>
+        <div class="sticker sticker1">✧  made with love  ✧</div>
+        <div class="sticker sticker2">✎  sketch in progress</div>
+    </div>
+    <div class="loading-text">
+        <i class="fas fa-pencil-alt pencil-icon"></i> crafting wonderland <i class="fas fa-pencil-alt pencil-icon"></i>
+    </div>
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <div class="progress-percent" id="progressPercent">0%</div>
+    <div class="thought-bubble" id="thoughtBubble">
+        <span class="thought-text">✶  gathering inspiration...  ✶</span>
+    </div>
+</div>
+
+<!-- 主内容区域 -->
+<div class="main-content" id="mainContent">
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">studio kai ✦</div>
+            <ul class="nav-links">
+                <li><a href="#home">home</a></li>
+                <li><a href="#resume">resume</a></li>
+                <li><a href="#portfolio">work</a></li>
+                <li><a href="#video">film</a></li>
+                <li><a href="#contact">connect</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main>
+        <section id="home" class="hero">
+            <div class="container hero-grid">
+                <div class="hero-content">
+                    <span class="hero-badge"><i class="fas fa-paintbrush-fine"></i> mixed-media artist · 手工叙事</span>
+                    <h1>kai lin  ·  <span class="highlight">crafting emotions</span></h1>
+                    <div class="hero-desc">
+                        以混合媒介探索艺术边界，将插画、纺织与数字影像编织成情感容器。每一件作品都是一次触摸温度的冒险。
+                    </div>
+                    <div class="btn-group">
+                        <a href="#" class="btn btn-primary" id="downloadBtn"><i class="fas fa-download"></i> 完整履历</a>
+                        <a href="#portfolio" class="btn btn-outline"><i class="fas fa-arrow-right"></i> 走入奇境</a>
+                    </div>
+                </div>
+                <div class="hero-visual">
+                    <div class="collage-grid">
+                        <div class="collage-item"><img src="https://picsum.photos/id/96/400/300" alt="collage art"></div>
+                        <div class="collage-item"><img src="https://picsum.photos/id/30/400/300" alt="fiber art"></div>
+                        <div class="collage-item large"><img src="https://picsum.photos/id/169/800/300" alt="handmade installation"></div>
+                    </div>
+                    <div class="sketch-sticker">✧  made with  love ✧</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="resume">
+            <div class="container">
+                <h2 class="section-title">about / 手作履历</h2>
+                <div class="resume-grid">
+                    <div class="resume-card">
+                        <h3><i class="fas fa-hands"></i> 创作经历</h3>
+                        <div class="exp-item">
+                            <h4>混合媒介艺术家 · 独立工作室</h4>
+                            <div class="exp-date">2023 – 至今 · 杭州/纽约</div>
+                            <p>专注纺织品艺术、手工拼贴及数字插画，作品参展上海“触感之间”设计周，与多个独立品牌联名创作艺术装置。</p>
+                        </div>
+                        <div class="exp-item">
+                            <h4>视觉设计师 · 一屿手作研究所</h4>
+                            <div class="exp-date">2020 – 2023</div>
+                            <p>主导手工品牌视觉升级，策划手工工作坊体验展，融合纸张、织物与数字视觉，强化品牌手工温度。</p>
+                        </div>
+                        <div class="exp-item">
+                            <h4>自由插画师 · 合作项目</h4>
+                            <div class="exp-date">2019 – 至今</div>
+                            <p>为出版社、独立杂志创作封面及内页插画，作品风格带有手绘肌理与复古拼贴感。</p>
+                        </div>
+                    </div>
+                    <div class="resume-card">
+                        <h3><i class="fas fa-feather-alt"></i> 工艺 & 工具</h3>
+                        <div class="skill-tags">
+                            <span class="skill-tag">手工刺绣</span>
+                            <span class="skill-tag">拼贴艺术</span>
+                            <span class="skill-tag">Procreate</span>
+                            <span class="skill-tag">综合材料</span>
+                            <span class="skill-tag">PS / AI</span>
+                            <span class="skill-tag">Premiere 剪辑</span>
+                            <span class="skill-tag">陶瓷纹样设计</span>
+                        </div>
+                        <div class="exp-item" style="margin-top: 1.5rem;">
+                            <h4>✺ 教育背景</h4>
+                            <p>中国美术学院 · 综合绘画/跨媒体艺术 硕士<br>纽约艺术联盟驻地艺术家 (2024)</p>
+                        </div>
+                        <div class="exp-item">
+                            <h4>🏷️ 展览与出版</h4>
+                            <p>参与杭州“野生艺术节”、不熟艺术书展；作品收录于《亚洲手工艺年鉴2024》。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="portfolio">
+            <div class="container">
+                <h2 class="section-title">featured works · 装置与视觉</h2>
+                <div class="portfolio-grid">
+                    <div class="portfolio-item">
+                        <img src="https://picsum.photos/id/20/600/400" alt="纺织装置" class="portfolio-img">
+                        <div class="portfolio-info">
+                            <h3>「柔软的锚点」纤维装置</h3>
+                            <div class="portfolio-desc">手工编织、羊毛毡与综合材料，探讨记忆与归属感。2024年个人项目展出。</div>
+                            <div class="tag-group"><span class="tag">纺织品艺术</span><span class="tag">空间装置</span></div>
+                        </div>
+                    </div>
+                    <div class="portfolio-item">
+                        <img src="https://picsum.photos/id/42/600/400" alt="拼贴画系列" class="portfolio-img">
+                        <div class="portfolio-info">
+                            <h3>梦境剪贴簿 · 拼贴插画</h3>
+                            <div class="portfolio-desc">混合老照片、布料和手绘元素，重塑潜意识中的超现实场景。</div>
+                            <div class="tag-group"><span class="tag">混合媒介</span><span class="tag">手绘拼贴</span></div>
+                        </div>
+                    </div>
+                    <div class="portfolio-item">
+                        <img src="https://picsum.photos/id/77/600/400" alt="陶瓷与织物" class="portfolio-img">
+                        <div class="portfolio-info">
+                            <h3>陶 · 絮语</h3>
+                            <div class="portfolio-desc">陶瓷与纺织的跨媒介实验，探索材质之间的呼吸感。</div>
+                            <div class="tag-group"><span class="tag">陶瓷工艺</span><span class="tag">材料实验</span></div>
+                        </div>
+                    </div>
+                    <div class="portfolio-item">
+                        <img src="https://picsum.photos/id/64/600/400" alt="视觉日记" class="portfolio-img">
+                        <div class="portfolio-info">
+                            <h3>视觉日记 · 数字手绘系列</h3>
+                            <div class="portfolio-desc">iPad 手绘结合纸纹扫描，营造复古触感插画。</div>
+                            <div class="tag-group"><span class="tag">Procreate</span><span class="tag">数字插画</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="video">
+            <div class="container video-section">
+                <h2 class="section-title" style="display:block; text-align:center;">moving works · 短片实验</h2>
+                <div class="hand-drawn-divider"></div>
+                <div class="video-frame">
+                    <video controls poster="https://picsum.photos/id/168/800/450" preload="metadata">
+                        <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" type="video/mp4">
+                        您的浏览器不支持video标签。
+                    </video>
+                </div>
+                <div class="video-caption">
+                    <i class="fas fa-scissors"></i> 手工定格动画 · 《织梦者》概念预告片
+                </div>
+                <p class="text-center mt-2" style="color:#A69078; font-size:0.75rem; text-align:center;">* 示例影片，展示创作过程记录，可替换为个人手工影像作品</p>
+            </div>
+        </section>
+
+        <section id="contact">
+            <div class="container contact-block">
+                <h2 class="section-title" style="display:inline-block;">✶ 保持通信</h2>
+                <div class="hand-drawn-divider"></div>
+                <p style="color:#6D5C4B; max-width:500px; margin:0 auto;">期待与你分享手作温度，共同编织灵感之网。接受展览合作、委托创作。</p>
+                <div class="contact-icons">
+                    <a href="mailto:studio.kai@example.com"><i class="fas fa-envelope"></i> studio.kai@handmade</a>
+                    <a href="#"><i class="fab fa-instagram"></i> @studio.kai_art</a>
+                    <a href="#"><i class="fab fa-pinterest"></i> pinterest · 灵感板</a>
+                    <a href="#"><i class="fas fa-hands-clapping"></i> 合作邀约</a>
+                </div>
+                <div style="margin-top: 2rem; font-family: 'Caveat', cursive; color:#BFA98C;">
+                    ✎ 纽约/杭州 · 工作室开放预约
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <p>© 2025 Studio Kai — 手工美学 · 情感构筑 · 触摸温度的创作</p>
+            <p style="margin-top:0.3rem">✧ 每一道纹理都在叙述故事 ✧</p>
+        </footer>
+    </main>
+</div>
+
+<script>
+    // 预加载器逻辑
+    (function() {
+        const preloader = document.getElementById('preloader');
+        const mainContent = document.getElementById('mainContent');
+        const progressBar = document.getElementById('progressBar');
+        const progressPercent = document.getElementById('progressPercent');
+        const thoughtBubble = document.getElementById('thoughtBubble');
+
+        // 手写风格短语集合
+        const phrases = [
+            "✶  gathering inspiration...  ✶",
+            "✎  sharpening pencils...  ✎",
+            "✧  cutting paper scraps...  ✧",
+            "✶  mixing colors...  ✶",
+            "✎  stitching memories...  ✎",
+            "✧  dreaming of textures...  ✧",
+            "✶  preparing the wonderland...  ✶",
+            "✎  crafting emotions...  ✎"
+        ];
+
+        let currentProgress = 0;
+        let phraseIndex = 0;
+        const totalDuration = 2000; // 2秒加载动画
+        const intervalTime = 30; // 每30ms更新一次
+        const steps = totalDuration / intervalTime;
+        const increment = 100 / steps;
+
+        // 更新手写短语（每300ms更换一次）
+        const phraseInterval = setInterval(() => {
+            if (currentProgress < 100) {
+                phraseIndex = (phraseIndex + 1) % phrases.length;
+                thoughtBubble.innerHTML = `<span class="thought-text">${phrases[phraseIndex]}</span>`;
+            }
+        }, 280);
+
+        // 进度条动画
+        const progressInterval = setInterval(() => {
+            if (currentProgress < 100) {
+                currentProgress = Math.min(currentProgress + increment, 100);
+                progressBar.style.width = currentProgress + '%';
+                progressPercent.innerText = Math.floor(currentProgress) + '%';
+            }
+            
+            if (currentProgress >= 100) {
+                clearInterval(progressInterval);
+                clearInterval(phraseInterval);
+                // 最后一条消息
+                thoughtBubble.innerHTML = `<span class="thought-text">✨  welcome to the studio!  ✨</span>`;
+                // 延迟一点后淡出预加载器
+                setTimeout(() => {
+                    preloader.classList.add('hidden');
+                    mainContent.classList.add('visible');
+                    // 预加载器移除DOM可选，保留以备后续
+                    setTimeout(() => {
+                        preloader.style.display = 'none';
+                    }, 800);
+                }, 400);
+            }
+        }, intervalTime);
+
+        // 确保进度条至少达到100%且预加载器消失
+        window.addEventListener('load', () => {
+            // 如果页面加载完成后进度还没到100%，强制完成
+            setTimeout(() => {
+                if (currentProgress < 100) {
+                    clearInterval(progressInterval);
+                    clearInterval(phraseInterval);
+                    currentProgress = 100;
+                    progressBar.style.width = '100%';
+                    progressPercent.innerText = '100%';
+                    thoughtBubble.innerHTML = `<span class="thought-text">✨  welcome to the studio!  ✨</span>`;
+                    setTimeout(() => {
+                        preloader.classList.add('hidden');
+                        mainContent.classList.add('visible');
+                        setTimeout(() => {
+                            preloader.style.display = 'none';
+                        }, 800);
+                    }, 400);
+                }
+            }, 2200);
+        });
+    })();
+
+    // 平滑滚动 & 简历PDF下载模拟
+    document.querySelectorAll('.nav-links a').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            const targetId = this.getAttribute('href');
+            if(targetId && targetId !== '#') {
+                e.preventDefault();
+                const targetElem = document.querySelector(targetId);
+                if(targetElem) targetElem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+    });
+
+    const viewWorks = document.querySelector('.btn-outline[href="#portfolio"]');
+    if(viewWorks) {
+        viewWorks.addEventListener('click', (e) => {
+            e.preventDefault();
+            document.querySelector('#portfolio').scrollIntoView({ behavior: 'smooth' });
+        });
+    }
+
+    const downloadResume = document.getElementById('downloadBtn');
+    if(downloadResume) {
+        downloadResume.addEventListener('click', (e) => {
+            e.preventDefault();
+            const confirm = window.confirm("此作品集为演示版本，可自行替换简历PDF。确定下载示例PDF说明？");
+            if(confirm){
+                const blob = new Blob(["KAI LIN · 手工艺术家简历\n教育背景：中国美术学院 综合绘画硕士\n展览经历：2024 纽约艺术驻地群展、上海不熟艺术书展\n合作品牌：一屿手作研究所、KARO 联名项目"], {type:"application/pdf"});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = "Studio_Kai_Resume_Handmade.pdf";
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+        });
+    }
+    console.log("手工美学作品集已载入 — 包含 KARO 风格预加载器");
+</script>
+</body>
+</html>
